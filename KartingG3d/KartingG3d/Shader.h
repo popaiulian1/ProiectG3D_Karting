@@ -136,7 +136,7 @@ private:
 			}
 		}
 	}
-private:
+public:
 	unsigned int ID;
 };
 

@@ -6,8 +6,7 @@
 #include "Camera.h"
 #include "Shader.h"
 #include <filesystem>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "Model.h"
 
 Camera* pCamera = nullptr;
 
@@ -63,13 +62,13 @@ int main(int argc, char** argv) {
 
 	float floorVertices[] = {
 		// positions          // texture Coords 
-		5.0f, -0.5f,  5.0f,  1.0f, 0.0f,
-		-5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
-		-5.0f, -0.5f, -5.0f,  0.0f, 1.0f,
+		 20.0f, -0.5f,  20.0f,  1.0f, 0.0f,
+		-20.0f, -0.5f,  20.0f,  0.0f, 0.0f,
+		-20.0f, -0.5f, -20.0f,  0.0f, 1.0f,
 
-		5.0f, -0.5f,  5.0f,  1.0f, 0.0f,
-		-5.0f, -0.5f, -5.0f,  0.0f, 1.0f,
-		5.0f, -0.5f, -5.0f,  1.0f, 1.0f
+		 20.0f, -0.5f,  20.0f,  1.0f, 0.0f,
+		-20.0f, -0.5f, -20.0f,  0.0f, 1.0f,
+		 20.0f, -0.5f, -20.0f,  1.0f, 1.0f
 	};
 
 	unsigned floorVAO, floorVBO;
@@ -86,6 +85,10 @@ int main(int argc, char** argv) {
 	pCamera = new Camera(800, 600, glm::vec3(-30.0f, 0.0f, 3.0f));
 
 	Shader floorShader("floor.vs", "floor.fs");
+	Shader kartingShader("karting.vs", "karting.fs");
+
+	std::string kartingModelPath = "..\\thirdparty\\RESOURCES\\gokart\\gokart.obj";
+	Model kartingModelObj(kartingModelPath, false);
 
 	while (!glfwWindowShouldClose(window)) {
 		double currentFrame = glfwGetTime();
@@ -98,11 +101,28 @@ int main(int argc, char** argv) {
 
 		glm::mat4 view = pCamera->GetViewMatrix();
 		glm::mat4 projection = pCamera->GetProjectionMatrix();
+		
+		kartingShader.Use();
+		kartingShader.SetVec3("objectColor", 0.5f, 1.0f, 0.31f);
+		kartingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		kartingShader.SetVec3("lightPos", glm::vec3(0.0f));
+		kartingShader.SetVec3("viewPos", pCamera->GetPosition());
+		kartingShader.SetInt("texture_diffuse1", 0);
+		kartingShader.SetMat4("projection", projection);
+		kartingShader.SetMat4("view", pCamera->GetViewMatrix());
+
+		glm::mat4 kartingModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
+		kartingModel = glm::rotate(kartingModel, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		kartingModel = glm::translate(kartingModel, glm::vec3(-30.0f, -0.5f, 3.0f));
+		kartingShader.SetMat4("model", kartingModel);
+		kartingModelObj.Draw(kartingShader);
+		
 		glm::mat4 model = glm::mat4(1.0f);
 		floorShader.Use();
 		floorShader.SetMat4("view", view);
 		floorShader.SetMat4("projection", projection);
 		floorShader.SetMat4("model", model);
+
 		glBindVertexArray(floorVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -160,41 +180,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yOffset)
 {
 	pCamera->ProcessMouseScroll((float)yOffset);
-}
-
-unsigned int CreateTexture(const std::string& strTexturePath)
-{
-	unsigned int textureId = -1;
-
-	// load image, create texture and generate mipmaps
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-	unsigned char* data = stbi_load(strTexturePath.c_str(), &width, &height, &nrChannels, 0);
-	if (data) {
-		GLenum format;
-		if (nrChannels == 1)
-			format = GL_RED;
-		else if (nrChannels == 3)
-			format = GL_RGB;
-		else if (nrChannels == 4)
-			format = GL_RGBA;
-
-		glGenTextures(1, &textureId);
-		glBindTexture(GL_TEXTURE_2D, textureId);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		// set the texture wrapping parameters
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-		// set texture filtering parameters
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-	else {
-		std::cout << "Failed to load texture: " << strTexturePath << std::endl;
-	}
-	stbi_image_free(data);
-
-	return textureId;
 }
