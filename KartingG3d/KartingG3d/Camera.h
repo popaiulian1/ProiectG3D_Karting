@@ -1,30 +1,25 @@
-ï»¿#pragma once
-
+#pragma once
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <GLM.hpp>
+#include <gtc/matrix_transform.hpp>
+
+enum ECameraMovementType
+{
+	UNKNOWN,
+	FORWARD,
+	BACKWARD,
+	LEFT,
+	RIGHT,
+	UP,
+	DOWN
+};
 
 class Camera
 {
-
-public:
-	enum ECameraMovementType
-	{
-		UNKNOWN,
-		FORWARD,
-		BACKWARD,
-		LEFT,
-		RIGHT,
-		UP,
-		DOWN
-	};
-
 private:
-
 	// Default camera values
 	const float zNEAR = 0.1f;
-	const float zFAR = 100.f;
+	const float zFAR = 500.f;
 	const float YAW = -90.0f;
 	const float PITCH = 0.0f;
 	const float FOV = 45.0f;
@@ -167,7 +162,7 @@ private:
 		//std::cout << "yaw = " << yaw << std::endl;
 		//std::cout << "pitch = " << pitch << std::endl;
 
-		// Avem grijï¿½ sï¿½ nu ne dï¿½m peste cap
+		// Avem grijã sã nu ne dãm peste cap
 		if (constrainPitch) {
 			if (pitch > 89.0f)
 				pitch = 89.0f;
@@ -175,7 +170,7 @@ private:
 				pitch = -89.0f;
 		}
 
-		// Se modificï¿½ vectorii camerei pe baza unghiurilor Euler
+		// Se modificã vectorii camerei pe baza unghiurilor Euler
 		UpdateCameraVectors();
 	}
 
@@ -192,7 +187,7 @@ private:
 	}
 
 protected:
-	const float cameraSpeedFactor = 2.5f;
+	const float cameraSpeedFactor = 100.f;
 	const float mouseSensitivity = 0.1f;
 
 	// Perspective properties
@@ -216,3 +211,4 @@ protected:
 	bool bFirstMouseMove = true;
 	float lastX = 0.f, lastY = 0.f;
 };
+

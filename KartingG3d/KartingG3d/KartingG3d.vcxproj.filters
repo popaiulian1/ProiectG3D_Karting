@@ -24,12 +24,12 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
+    <ClInclude Include="Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vertex.h">
@@ -38,24 +38,27 @@
     <ClInclude Include="Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
+    <ClInclude Include="Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="floor.fs">
+    <None Include="kart.fs">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="floor.vs">
+    <None Include="kart.vs">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="karting.fs">
+    <None Include="light.vs">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="karting.vs">
+    <None Include="light.fs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

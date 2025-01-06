@@ -1,50 +1,52 @@
-﻿#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "Camera.h"
-#include "Shader.h"
-#include <filesystem>
-#include "Model.h"
+#include <Windows.h>
+#include <locale>
+#include <codecvt>
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h> 
+#include "Shader.h"
+
+#include <gtc/type_ptr.hpp>
+#include <glfw3.h>
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include "Model.h"
+#include "Camera.h"
+
+#pragma comment (lib, "glfw3dll.lib")
+#pragma comment (lib, "glew32.lib")
+#pragma comment (lib, "OpenGL32.lib")
+
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+GLuint ProjectMatrixLocation, ViewMatrixLocation, WorldMatrixLocation;
 Camera* pCamera = nullptr;
 
-void Cleanup()
-{
-	delete pCamera;
-}
+double deltaTime = 0.0f;
+double lastFrame = 0.0f;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
+void Cleanup();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
-unsigned int CreateTexture(const std::string& strTexturePath);
 
-int main(int argc, char** argv) {
-
-	std::string strFullExeFileName = argv[0];
-	std::string strExePath;
-	const size_t last_slash_idx = strFullExeFileName.rfind('\\');
-	if (std::string::npos != last_slash_idx)
-	{
-		strExePath = strFullExeFileName.substr(0, last_slash_idx);
-	}
-
+int main()
+{
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "KartingG3d", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "KartingG3D", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		Cleanup();
 		return -1;
 	}
 
@@ -54,121 +56,87 @@ int main(int argc, char** argv) {
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	glewInit();
+	if (glewInit() != GLEW_OK) {
+		std::cout << "Failed to initialize GLEW" << std::endl;
+		return -1;
+	}
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	float floorVertices[] = {
-		// positions          // texture Coords 
-		 20.0f, -0.5f,  20.0f,  1.0f, 0.0f,
-		-20.0f, -0.5f,  20.0f,  0.0f, 0.0f,
-		-20.0f, -0.5f, -20.0f,  0.0f, 1.0f,
+	GLenum err = glGetError();
+	if (err != GL_NO_ERROR) {
+		std::cout << "OpenGL Error: " << err << std::endl;
+	}
 
-		 20.0f, -0.5f,  20.0f,  1.0f, 0.0f,
-		-20.0f, -0.5f, -20.0f,  0.0f, 1.0f,
-		 20.0f, -0.5f, -20.0f,  1.0f, 1.0f
-	};
+	pCamera = new Camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 3.0f));
 
-	unsigned floorVAO, floorVBO;
-	glGenVertexArrays(1, &floorVAO);
-	glGenBuffers(1, &floorVBO);
-	glBindVertexArray(floorVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), &floorVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glm::vec3 kartPos(0.0f, 5.0f, 0.0f);
+	glm::vec3 lightPos(0.0f, 5.0f, 1.0f);
 
-	pCamera = new Camera(800, 600, glm::vec3(-30.0f, 0.0f, 3.0f));
+	wchar_t buffer[MAX_PATH];
+	GetCurrentDirectoryW(MAX_PATH, buffer);
 
-	Shader floorShader("floor.vs", "floor.fs");
-	Shader kartingShader("karting.vs", "karting.fs");
+	std::wstring executablePath(buffer);
+	std::wstring wscurrentPath = executablePath.substr(0, executablePath.find_last_of(L"\\/"));
 
-	std::string kartingModelPath = "..\\thirdparty\\RESOURCES\\gokart\\gokart.obj";
-	Model kartingModelObj(kartingModelPath, false);
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	std::string currentPath = converter.to_bytes(wscurrentPath);
+
+	Shader lightShader("light.vs", "light.fs");
+
+	Shader kartShader("kart.vs", "kart.fs");
+	Model kartModel((currentPath + "\\models\\Kart\\go_kart.obj").c_str(), false);
 
 	while (!glfwWindowShouldClose(window)) {
 		double currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		lightPos.x = 2.5 * cos(glfwGetTime());
+		lightPos.z = 2.5 * sin(glfwGetTime());
+
 		processInput(window);
 
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 view = pCamera->GetViewMatrix();
-		glm::mat4 projection = pCamera->GetProjectionMatrix();
-		
-		kartingShader.Use();
-		kartingShader.SetVec3("objectColor", 0.5f, 1.0f, 0.31f);
-		kartingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		kartingShader.SetVec3("lightPos", glm::vec3(0.0f));
-		kartingShader.SetVec3("viewPos", pCamera->GetPosition());
-		kartingShader.SetInt("texture_diffuse1", 0);
-		kartingShader.SetMat4("projection", projection);
-		kartingShader.SetMat4("view", pCamera->GetViewMatrix());
+		lightShader.use();
+		lightShader.setMat4("projection", pCamera->GetProjectionMatrix());
+		lightShader.setMat4("view", pCamera->GetViewMatrix());
+		glm::mat4 lightModel = glm::translate(glm::mat4(1.0f), lightPos);
+		lightModel = glm::scale(lightModel, glm::vec3(0.05f));
+		lightShader.setMat4("model", lightModel);
 
-		glm::mat4 kartingModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
-		kartingModel = glm::rotate(kartingModel, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		kartingModel = glm::translate(kartingModel, glm::vec3(-30.0f, -0.5f, 3.0f));
-		kartingShader.SetMat4("model", kartingModel);
-		kartingModelObj.Draw(kartingShader);
-		
-		glm::mat4 model = glm::mat4(1.0f);
-		floorShader.Use();
-		floorShader.SetMat4("view", view);
-		floorShader.SetMat4("projection", projection);
-		floorShader.SetMat4("model", model);
+		kartShader.use();
+		kartShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		kartShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		kartShader.SetVec3("lightPos", 0.0f, 0.0f, 3.0f);
+		kartShader.SetVec3("viewPos", pCamera->GetPosition());
+		kartShader.setInt("texture_diffuse1", 0);
 
-		glBindVertexArray(floorVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		kartShader.setMat4("projection", pCamera->GetProjectionMatrix());
+		kartShader.setMat4("view", pCamera->GetViewMatrix());
+		glm::mat4 kartModelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+		kartShader.setMat4("model", kartModelMatrix);
+		kartModel.Draw(kartShader);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	Cleanup();
-	glDeleteVertexArrays(1, &floorVAO);
-	glDeleteBuffers(1, &floorVBO);
-
-	glfwTerminate();
 	return 0;
 }
 
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-
-	if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(Camera::UP, (float)deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(Camera::DOWN, (float)deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(Camera::LEFT, (float)deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(Camera::RIGHT, (float)deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(Camera::FORWARD, (float)deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(Camera::BACKWARD, (float)deltaTime);
-
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-		int width, height;
-		glfwGetWindowSize(window, &width, &height);
-		pCamera->Reset(width, height);
+void Cleanup() {
+	if (pCamera)
+	{
+		delete pCamera;
+		pCamera = nullptr;
 	}
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	// make sure the viewport matches the new window dimensions; note that width and 
-	// height will be significantly larger than specified on retina displays.
 	pCamera->Reshape(width, height);
 }
 
@@ -177,7 +145,32 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	pCamera->MouseControl((float)xpos, (float)ypos);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yOffset)
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	pCamera->ProcessMouseScroll((float)yOffset);
+	pCamera->ProcessMouseScroll((float)yoffset);
+}
+
+void processInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
+		pCamera->ProcessKeyboard(UP, (float)deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
+		pCamera->ProcessKeyboard(DOWN, (float)deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		pCamera->ProcessKeyboard(LEFT, (float)deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		pCamera->ProcessKeyboard(RIGHT, (float)deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		pCamera->ProcessKeyboard(FORWARD, (float)deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		pCamera->ProcessKeyboard(BACKWARD, (float)deltaTime);
+
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
+		pCamera->Reset(width, height);
+	}
 }

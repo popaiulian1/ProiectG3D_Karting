@@ -54,7 +54,7 @@ Mesh::Mesh(std::string name, unsigned int numVertices, std::shared_ptr <Vertex> 
 // render the mesh
 void Mesh::Draw(Shader& shader)
 {
-    //std::cout << "start drawing " << std::endl;
+    std::cout << "start drawing " << std::endl;
 
     // bind appropriate textures
     unsigned int diffuseNr = 1;
@@ -89,13 +89,13 @@ void Mesh::Draw(Shader& shader)
     // draw mesh
     glBindVertexArray(VAO);
 
-    //std::cout << "draw triangles: " << numIndexes << std::endl;
+    std::cout << "draw triangles: " << numIndexes << std::endl;
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(numIndexes), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.
     glActiveTexture(GL_TEXTURE0);
-    //std::cout << "end drawing " << std::endl;
+    std::cout << "end drawing " << std::endl;
 }
 
 // initializes all the buffer objects/arrays

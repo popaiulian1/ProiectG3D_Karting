@@ -49,6 +49,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
     {
         processNode(node->mChildren[i], scene);
     }
+
 }
 
 Mesh Model::processMesh(std::string nodeName, aiMesh* mesh, const aiScene* scene)
