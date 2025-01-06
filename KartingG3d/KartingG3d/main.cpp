@@ -83,9 +83,11 @@ int main()
 	std::string currentPath = converter.to_bytes(wscurrentPath);
 
 	Shader lightShader("light.vs", "light.fs");
-
+	Shader trackShader("track.vs", "track.fs");
 	Shader kartShader("kart.vs", "kart.fs");
+
 	Model kartModel((currentPath + "\\models\\Kart\\go_kart.obj").c_str(), false);
+	Model trackModel((currentPath + "\\models\\Track\\Mini_Catalunya.obj").c_str(), false);
 
 	while (!glfwWindowShouldClose(window)) {
 		double currentFrame = glfwGetTime();
@@ -106,6 +108,7 @@ int main()
 		glm::mat4 lightModel = glm::translate(glm::mat4(1.0f), lightPos);
 		lightModel = glm::scale(lightModel, glm::vec3(0.05f));
 		lightShader.setMat4("model", lightModel);
+		
 
 		kartShader.use();
 		kartShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
@@ -119,6 +122,19 @@ int main()
 		glm::mat4 kartModelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
 		kartShader.setMat4("model", kartModelMatrix);
 		kartModel.Draw(kartShader);
+		
+		trackShader.use();
+		trackShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		trackShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		trackShader.SetVec3("lightPos", lightPos);
+		trackShader.SetVec3("viewPos", pCamera->GetPosition());
+		trackShader.setInt("texture_diffuse1", 0);
+		trackShader.setMat4("projection", pCamera->GetProjectionMatrix());
+		trackShader.setMat4("view", pCamera->GetViewMatrix());
+		glm::mat4 trackModelMatrix = glm::scale(glm::mat4(100.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+		trackModelMatrix = glm::rotate(trackModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		trackShader.setMat4("model", trackModelMatrix);
+		trackModel.Draw(trackShader);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
