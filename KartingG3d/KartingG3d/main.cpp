@@ -22,8 +22,21 @@
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+bool lockedCamera = false;
+
+//Kart movement vars
+float kartRotationAngle = 0.0f; // In degrees
+float kartRotationSpeed = 50.0f;
+float kartSpeed = 0.0f;
+float kartAcceleration = 0.0f;
+float kartMaxSpeed = 80.0f;
+float kartAccelerationSpeed = 10.0f;
+float kartDecelerationSpeed = 20.0f;
 
 GLuint ProjectMatrixLocation, ViewMatrixLocation, WorldMatrixLocation;
+glm::vec3 startFinishLineCameraPos(-190.0f, 20.0f, 260.0f);
+glm::vec3 startFinishLinePos(-190.0f, 30.f, 260.0f);
+glm::vec3 kartPos = startFinishLinePos;
 Camera* pCamera = nullptr;
 
 double deltaTime = 0.0f;
@@ -68,10 +81,9 @@ int main()
 		std::cout << "OpenGL Error: " << err << std::endl;
 	}
 
-	pCamera = new Camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 3.0f));
+	pCamera = new Camera(SCR_WIDTH, SCR_HEIGHT, startFinishLineCameraPos);
 
-	glm::vec3 kartPos(0.0f, 5.0f, 0.0f);
-	glm::vec3 lightPos(0.0f, 5.0f, 1.0f);
+	glm::vec3 lightPos(0.0f, 200.0f, 0.0f);
 
 	wchar_t buffer[MAX_PATH];
 	GetCurrentDirectoryW(MAX_PATH, buffer);
@@ -87,7 +99,7 @@ int main()
 	Shader kartShader("kart.vs", "kart.fs");
 
 	Model kartModel((currentPath + "\\models\\Kart\\go_kart.obj").c_str(), false);
-	Model trackModel((currentPath + "\\models\\Track\\Mini_Catalunya.obj").c_str(), false);
+	Model trackModel((currentPath + "\\models\\Track\\track.obj").c_str(), false);
 
 	while (!glfwWindowShouldClose(window)) {
 		double currentFrame = glfwGetTime();
@@ -102,27 +114,6 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		lightShader.use();
-		lightShader.setMat4("projection", pCamera->GetProjectionMatrix());
-		lightShader.setMat4("view", pCamera->GetViewMatrix());
-		glm::mat4 lightModel = glm::translate(glm::mat4(1.0f), lightPos);
-		lightModel = glm::scale(lightModel, glm::vec3(0.05f));
-		lightShader.setMat4("model", lightModel);
-		
-
-		kartShader.use();
-		kartShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		kartShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		kartShader.SetVec3("lightPos", 0.0f, 0.0f, 3.0f);
-		kartShader.SetVec3("viewPos", pCamera->GetPosition());
-		kartShader.setInt("texture_diffuse1", 0);
-
-		kartShader.setMat4("projection", pCamera->GetProjectionMatrix());
-		kartShader.setMat4("view", pCamera->GetViewMatrix());
-		glm::mat4 kartModelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
-		kartShader.setMat4("model", kartModelMatrix);
-		kartModel.Draw(kartShader);
-		
 		trackShader.use();
 		trackShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		trackShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -132,9 +123,34 @@ int main()
 		trackShader.setMat4("projection", pCamera->GetProjectionMatrix());
 		trackShader.setMat4("view", pCamera->GetViewMatrix());
 		glm::mat4 trackModelMatrix = glm::scale(glm::mat4(100.0f), glm::vec3(0.1f, 0.1f, 0.1f));
-		trackModelMatrix = glm::rotate(trackModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		trackModelMatrix = glm::translate(trackModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		trackModelMatrix = glm::rotate(trackModelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		trackShader.setMat4("model", trackModelMatrix);
 		trackModel.Draw(trackShader);
+
+		lightShader.use();
+		lightShader.setMat4("projection", pCamera->GetProjectionMatrix());
+		lightShader.setMat4("view", pCamera->GetViewMatrix());
+		glm::mat4 lightModel = glm::translate(glm::mat4(1.0f), lightPos);
+		lightModel = glm::scale(lightModel, glm::vec3(0.05f));
+		lightShader.setMat4("model", lightModel);
+		
+		kartShader.use();
+		kartShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		kartShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		kartShader.SetVec3("lightPos", lightPos);
+		kartShader.SetVec3("viewPos", pCamera->GetPosition());
+		kartShader.setInt("texture_diffuse1", 0);
+		kartShader.setMat4("projection", pCamera->GetProjectionMatrix());
+		kartShader.setMat4("view", pCamera->GetViewMatrix());
+		glm::mat4 kartModelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+
+		std::cout << "kartPos: (" << kartPos.x << ", " << kartPos.y << ", " << kartPos.z << ")" << std::endl;
+
+		kartModelMatrix = glm::translate(kartModelMatrix, kartPos);
+		kartModelMatrix = glm::rotate(kartModelMatrix, glm::radians(kartRotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+		kartShader.setMat4("model", kartModelMatrix);
+		kartModel.Draw(kartShader);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -168,25 +184,59 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void processInput(GLFWwindow* window)
 {
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(UP, (float)deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(DOWN, (float)deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(LEFT, (float)deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(RIGHT, (float)deltaTime);
+	{
+		if (!lockedCamera) {
+			pCamera->ProcessKeyboard(LEFT, (float)deltaTime);
+		}
+		else {
+			 // Rotate left
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		if (!lockedCamera) {
+			pCamera->ProcessKeyboard(RIGHT, (float)deltaTime);
+		}
+		else {
+
+		}
+		
+	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(FORWARD, (float)deltaTime);
+	{
+		if (!lockedCamera) {
+			pCamera->ProcessKeyboard(FORWARD, (float)deltaTime);
+		}
+		else {
+			
+		}
+	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		pCamera->ProcessKeyboard(BACKWARD, (float)deltaTime);
+	{
+		if (!lockedCamera) {
+			pCamera->ProcessKeyboard(BACKWARD, (float)deltaTime);
+		}
+		else {
+			
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		delete pCamera;
+		pCamera = new Camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(-19.0f, 10.0f, 22.0f));
+		pCamera->SetCameraSpeedFactor(0.1f);
+		lockedCamera = true;
+	}
 
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 		pCamera->Reset(width, height);
+		pCamera->SetCameraSpeedFactor(100.0f);
+		lockedCamera = false;
 	}
 }

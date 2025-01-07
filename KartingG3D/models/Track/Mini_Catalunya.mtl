@@ -10,6 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd carbon.png
 
 newmtl barriers
 Ns 323.999994
@@ -20,6 +21,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd barriers.png
 
 newmtl carbon
 Ns 323.999994
@@ -40,6 +42,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd ceiling.png
 
 newmtl curb_edges
 Ns 323.999994
@@ -50,6 +53,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd curb_edges.png
 
 newmtl helmet
 Ns 0.000000
@@ -130,6 +134,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd mt_mario.png
 
 newmtl sky_wall
 Ns 323.999994
@@ -140,6 +145,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd sky_wall.png
 
 newmtl supports
 Ns 323.999994
@@ -150,6 +156,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd supports.png
 
 newmtl visor
 Ns 0.000000

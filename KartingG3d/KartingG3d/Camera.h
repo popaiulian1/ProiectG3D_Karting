@@ -18,11 +18,11 @@ class Camera
 {
 private:
 	// Default camera values
-	const float zNEAR = 0.1f;
-	const float zFAR = 500.f;
+	const float zNEAR = 0.01f;
+	const float zFAR = 5000.f;
 	const float YAW = -90.0f;
 	const float PITCH = 0.0f;
-	const float FOV = 45.0f;
+	const float FOV = 60.0f;
 	glm::vec3 startPosition;
 
 public:
@@ -52,6 +52,11 @@ public:
 		bFirstMouseMove = true;
 
 		UpdateCameraVectors();
+	}
+
+	void SetCameraSpeedFactor(float factor)
+	{
+		cameraSpeedFactor = factor;
 	}
 
 	void Reset(const int width, const int height)
@@ -187,7 +192,7 @@ private:
 	}
 
 protected:
-	const float cameraSpeedFactor = 100.f;
+	float cameraSpeedFactor = 100.f;
 	const float mouseSensitivity = 0.1f;
 
 	// Perspective properties
