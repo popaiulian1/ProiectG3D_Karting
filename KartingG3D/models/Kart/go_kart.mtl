@@ -1,0 +1,26 @@
+# Blender 4.3.0 MTL File: 'kart.blend'
+# www.blender.org
+
+newmtl mat0
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd phongE1SG_baseColor.jpg
+map_Ns phongE1SG_metallicRoughness.png
+map_refl phongE1SG_metallicRoughness.png
+map_Bump phongE1SG_normal.png
+
+newmtl mat1
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd phongE2SG_baseColor.jpg
+map_Ns phongE2SG_metallicRoughness.png
+map_refl phongE2SG_metallicRoughness.png
+map_Bump phongE2SG_normal.png
