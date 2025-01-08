@@ -29,7 +29,7 @@ glm::vec3 cameraOffset(0.0f, 6.5f, 5.0f); // Increased z component from 6.0f to 
 
 GLuint ProjectMatrixLocation, ViewMatrixLocation, WorldMatrixLocation;
 glm::vec3 startFinishLineCameraPos(300.0f, 20.0f, 1000.0f);
-glm::vec3 startFinishLinePos(282.5f, 2.5f, 830.0f);
+glm::vec3 startFinishLinePos(281.4f, 2.5f, 1003.0f);
 glm::vec3 kartPos = startFinishLinePos;
 glm::vec3 cameraPosition = kartPos + cameraOffset;
 Camera* pCamera = nullptr;
@@ -266,10 +266,15 @@ void processInput(GLFWwindow* window)
 
 	//FRANA
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		if (kartSpeed > 0) {
-			kartSpeed -= decelerationRate * (float)deltaTime;
-			if (kartSpeed < 0) {
-				kartSpeed = 0;
+		if (!lockedCamera) {
+			pCamera->ProcessKeyboard(BACKWARD, (float)deltaTime);
+		}
+		else {
+			if (kartSpeed > 0) {
+				kartSpeed -= decelerationRate * (float)deltaTime;
+				if (kartSpeed < 0) {
+					kartSpeed = 0;
+				}
 			}
 		}
 	}
