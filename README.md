@@ -1,6 +1,8 @@
 # ProiectG3D_Karting
-
 Small project for university in which we've created a karting track with a kart that you can drive around.
+
+# Video Presentation of the [project](https://youtu.be/Qg7PQnN6MlU).
+
 # Controls:
 ## General Camera Movement:
 "R" -> reset
@@ -17,4 +19,4 @@ Small project for university in which we've created a karting track with a kart 
 ### Controls:
 "Q" -> reset kart to start/finish line position
 
-#Video Presentation of the [project](https://youtu.be/Qg7PQnN6MlU).
+
