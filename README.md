@@ -5,7 +5,7 @@ Small project for university in which we've created a karting track with a kart 
 
 # Controls:
 ## General Camera Movement:
-"R" -> reset  
+"R" -> reset camera / unlock camera from kart  
 "E" -> lock to kart seat  
 "W" -> move forward   
 "S" -> move back    
