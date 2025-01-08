@@ -25,10 +25,10 @@ const unsigned int SCR_HEIGHT = 600;
 bool lockedCamera = false;
 
 // Adjust the cameraOffset to move the camera further back
-glm::vec3 cameraOffset(0.0f, 6.5f, 5.0f); // Increased z component from 6.0f to 10.0f
+glm::vec3 cameraOffset(0.0f, 6.5f, 5.0f);
 
 GLuint ProjectMatrixLocation, ViewMatrixLocation, WorldMatrixLocation;
-glm::vec3 startFinishLineCameraPos(300.0f, 20.0f, 1000.0f);
+glm::vec3 startFinishLineCameraPos(300.0f, 20.0f, 1035.0f);
 glm::vec3 startFinishLinePos(281.4f, 2.5f, 1003.0f);
 glm::vec3 kartPos = startFinishLinePos;
 glm::vec3 cameraPosition = kartPos + cameraOffset;
@@ -200,7 +200,7 @@ void processInput(GLFWwindow* window)
 			kartAngle -= 0.5f;
 		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) //ACELERAT
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // Accelerate
 	{
 		if (!lockedCamera) {
 			pCamera->ProcessKeyboard(FORWARD, (float)deltaTime);
@@ -213,7 +213,7 @@ void processInput(GLFWwindow* window)
 			}
 		}
 	}
-	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) //DAT CU SPATELE
+	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) // Reverse
 	{
 		if (!lockedCamera) {
 			pCamera->ProcessKeyboard(BACKWARD, (float)deltaTime);
