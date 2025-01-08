@@ -20,22 +20,27 @@
 #pragma comment (lib, "glew32.lib")
 #pragma comment (lib, "OpenGL32.lib")
 
-const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_WIDTH = 1200;
 const unsigned int SCR_HEIGHT = 600;
 bool lockedCamera = false;
 
-glm::vec3 cameraOffset(0.0f, 7.5f, 0.5f);
-glm::vec3 addedOffset(26.0f, 0.0f, 88.0f);
+// Adjust the cameraOffset to move the camera further back
+glm::vec3 cameraOffset(0.0f, 6.5f, 5.0f); // Increased z component from 6.0f to 10.0f
 
 GLuint ProjectMatrixLocation, ViewMatrixLocation, WorldMatrixLocation;
 glm::vec3 startFinishLineCameraPos(300.0f, 20.0f, 1000.0f);
-glm::vec3 startFinishLinePos(256.0f, 2.5f, 845.5f);
+glm::vec3 startFinishLinePos(282.5f, 2.5f, 830.0f);
 glm::vec3 kartPos = startFinishLinePos;
-glm::vec3 cameraPosition = kartPos + addedOffset + cameraOffset;
+glm::vec3 cameraPosition = kartPos + cameraOffset;
 Camera* pCamera = nullptr;
 
 double deltaTime = 0.0f;
 double lastFrame = 0.0f;
+float kartAngle = 0.0f;
+float kartSpeed = 0.0f;
+float kartMaxSpeed = 200.0f;
+float accelerationRate = 25.0f;
+float decelerationRate = 50.0f;
 
 void Cleanup();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -127,7 +132,7 @@ int main()
 		lightModel = glm::scale(lightModel, glm::vec3(0.05f));
 		lightModel = glm::translate(glm::mat4(1.0f), lightPos);
 		lightShader.setMat4("model", lightModel);
-		
+
 		kartShader.use();
 		kartShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		kartShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -137,8 +142,9 @@ int main()
 		kartShader.setMat4("projection", pCamera->GetProjectionMatrix());
 		kartShader.setMat4("view", pCamera->GetViewMatrix());
 		glm::mat4 kartModelMatrix = glm::mat4(1.0f);
-		kartModelMatrix = glm::scale(glm::mat4(0.1f), glm::vec3(1.0f, 1.0f, 1.0f));
 		kartModelMatrix = glm::translate(kartModelMatrix, kartPos);
+		kartModelMatrix = glm::rotate(kartModelMatrix, glm::radians(kartAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+		kartModelMatrix = glm::scale(kartModelMatrix, glm::vec3(0.1f));
 		kartShader.setMat4("model", kartModelMatrix);
 		kartModel.Draw(kartShader);
 
@@ -174,7 +180,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void processInput(GLFWwindow* window)
 {
-
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
@@ -184,8 +189,7 @@ void processInput(GLFWwindow* window)
 			pCamera->ProcessKeyboard(LEFT, (float)deltaTime);
 		}
 		else {
-			
-
+			kartAngle += 0.5f;
 		}
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
@@ -193,44 +197,89 @@ void processInput(GLFWwindow* window)
 			pCamera->ProcessKeyboard(RIGHT, (float)deltaTime);
 		}
 		else {
-			
+			kartAngle -= 0.5f;
 		}
-		
 	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) //ACELERAT
 	{
 		if (!lockedCamera) {
 			pCamera->ProcessKeyboard(FORWARD, (float)deltaTime);
 		}
 		else {
-			kartPos.z -= 1.0f;
-			pCamera->Set(SCR_WIDTH, SCR_HEIGHT, glm::vec3(pCamera->GetPosition().x, pCamera->GetPosition().y, cameraPosition.z + 1.1f));
-			cameraPosition.z -= 1.1f;
+			// Accelerate the kart
+			kartSpeed += accelerationRate * (float)deltaTime;
+			if (kartSpeed > kartMaxSpeed) {
+				kartSpeed = kartMaxSpeed;
+			}
 		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) //DAT CU SPATELE
 	{
 		if (!lockedCamera) {
 			pCamera->ProcessKeyboard(BACKWARD, (float)deltaTime);
 		}
 		else {
-			kartPos.z += 1.0f;
-			pCamera->Set(SCR_WIDTH, SCR_HEIGHT, glm::vec3(pCamera->GetPosition().x, pCamera->GetPosition().y, cameraPosition.z - 1.1f));
-			cameraPosition.z += 1.1f;
+			kartSpeed -= decelerationRate * (float)deltaTime * 10;
+			if (kartSpeed < -kartMaxSpeed/4) {
+				kartSpeed = -kartMaxSpeed/4;
+			}
 		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	else
+	{
+		//FRANA DE MOTOR
+		if (kartSpeed > 0) {
+			kartSpeed -= decelerationRate * (float)deltaTime;
+			if (kartSpeed < 0) {
+				kartSpeed = 0;
+			}
+		}
+		else if (kartSpeed < 0) {
+			kartSpeed += decelerationRate * (float)deltaTime;
+			if (kartSpeed > 0) {
+				kartSpeed = 0;
+			}
+		}
+	}
+
+	if (lockedCamera) {
+		kartPos.x -= sin(glm::radians(kartAngle)) * kartSpeed * (float)deltaTime;
+		kartPos.z -= cos(glm::radians(kartAngle)) * kartSpeed * (float)deltaTime;
+		cameraPosition = kartPos + glm::vec3(-sin(glm::radians(kartAngle)) * (cameraOffset.z - 10.0f), cameraOffset.y, -cos(glm::radians(kartAngle)) * (cameraOffset.z-10.0f));
+		pCamera->Set(SCR_WIDTH, SCR_HEIGHT, cameraPosition);
+		pCamera->SetYaw(-kartAngle - 90.0f);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 	{
 		delete pCamera;
 		pCamera = new Camera(SCR_WIDTH, SCR_HEIGHT, cameraPosition);
 		lockedCamera = true;
 	}
 
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		kartPos = startFinishLinePos;
+		kartSpeed = 0.0f;
+		kartAngle = 0.0f;
+	}
+
+	//FRANA
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		if (kartSpeed > 0) {
+			kartSpeed -= decelerationRate * (float)deltaTime;
+			if (kartSpeed < 0) {
+				kartSpeed = 0;
+			}
+		}
+	}
+
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 		pCamera->Reset(width, height);
-		pCamera->SetCameraSpeedFactor(100.0f);
 		lockedCamera = false;
 	}
 }
+
+

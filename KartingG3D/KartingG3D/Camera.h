@@ -21,7 +21,7 @@ private:
 	const float zFAR = 5000.f;
 	const float YAW = -90.0f;
 	const float PITCH = 0.0f;
-	const float FOV = 70.0f;
+	float FOV = 60.0f;
 	glm::vec3 startPosition;
 
 public:
@@ -51,6 +51,13 @@ public:
 		bFirstMouseMove = true;
 
 		UpdateCameraVectors();
+	}
+
+	void SetFov(float newValue) {
+		FOV = newValue;
+	}
+	float GetFov() {
+		return FOV;
 	}
 
 	void SetCameraSpeedFactor(float factor)
@@ -168,6 +175,12 @@ public:
 			FoVy = 90.0f;
 	}
 
+	void SetYaw(float newYaw)
+	{
+		yaw = newYaw;
+		UpdateCameraVectors();
+	}
+
 private:
 	void ProcessMouseMovement(float xOffset, float yOffset, bool constrainPitch = true)
 	{
@@ -190,7 +203,7 @@ private:
 		this->forward.y = sin(glm::radians(pitch));
 		this->forward.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 		this->forward = glm::normalize(this->forward);
-		right = glm::normalize(glm::cross(forward, worldUp)); 
+		right = glm::normalize(glm::cross(forward, worldUp));
 		up = glm::normalize(glm::cross(right, forward));
 	}
 
@@ -217,4 +230,3 @@ protected:
 	bool bFirstMouseMove = true;
 	float lastX = 0.f, lastY = 0.f;
 };
-

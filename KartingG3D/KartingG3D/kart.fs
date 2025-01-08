@@ -11,19 +11,18 @@ uniform vec3 lightColor;
 uniform vec3 objectColor;
 
 uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_normal1;
 
 void main()
 {
-	 // simple color blending
+    // simple color blending
     vec3 texColor = texture(texture_diffuse1, TexCoords).rgb;
-	
-	 // ambient
+    
+    // ambient
     float ambientStrength = 0.3;
     vec3 ambient = ambientStrength * lightColor;
-  	
+    
     // diffuse
-	float diffuseStrength = 0.5;
+    float diffuseStrength = 0.5;
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
@@ -35,7 +34,7 @@ void main()
     vec3 reflectDir = reflect(-lightDir, norm);  
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * lightColor;  
-        
+    
     vec3 result = (ambient + diffuse + specular) * texColor;
     FragColor = vec4(result, 1.0);
-} 
+}
