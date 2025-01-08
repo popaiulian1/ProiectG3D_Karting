@@ -20,12 +20,12 @@
 #pragma comment (lib, "glew32.lib")
 #pragma comment (lib, "OpenGL32.lib")
 
-const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1080;
 bool lockedCamera = false;
 
 // Adjust the cameraOffset to move the camera further back
-glm::vec3 cameraOffset(0.0f, 6.5f, 5.0f);
+glm::vec3 cameraOffset(0.1f, 7.5f, 5.0f);
 
 GLuint ProjectMatrixLocation, ViewMatrixLocation, WorldMatrixLocation;
 glm::vec3 startFinishLineCameraPos(300.0f, 20.0f, 1035.0f);

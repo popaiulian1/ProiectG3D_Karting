@@ -21,7 +21,7 @@ private:
 	const float zFAR = 5000.f;
 	const float YAW = -90.0f;
 	const float PITCH = 0.0f;
-	float FOV = 60.0f;
+	float FOV = 80.0f;
 	glm::vec3 startPosition;
 
 public:
