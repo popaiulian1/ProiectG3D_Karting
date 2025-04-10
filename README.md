@@ -1,8 +1,6 @@
 # ProiectG3D_Karting
 A 3D karting simulation developed in C++ with modern OpenGL, allowing players to drive a kart around a custom-built track.
 
-[![Project Video](https://img.shields.io/badge/Watch-Demo_Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/Qg7PQnN6MlU)
-
 [View Project Demo Video](https://youtu.be/Qg7PQnN6MlU)
 
 ## Technologies
