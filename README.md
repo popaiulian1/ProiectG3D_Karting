@@ -51,8 +51,4 @@ The project implements a simple physics system for the kart with:
 - Steering control
 - Camera following with adjustable perspectives
 
-## License
-
-This project was developed for educational purposes at university.
-
 
